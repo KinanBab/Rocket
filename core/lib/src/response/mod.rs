@@ -14,7 +14,7 @@
 //! `Responder`s `A`, `B`, and `C`. This is normal and encouraged as the type
 //! names typically illustrate the intended response.
 
-mod responder;
+pub mod responder;
 mod redirect;
 mod response;
 mod debug;
