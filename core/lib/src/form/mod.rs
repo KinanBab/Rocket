@@ -367,7 +367,7 @@ mod form;
 mod context;
 mod strict;
 mod lenient;
-mod parser;
+pub mod parser;
 pub mod validate;
 pub mod name;
 pub mod error;
