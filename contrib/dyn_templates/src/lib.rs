@@ -327,6 +327,13 @@ impl Template {
     {
         Template { name: name.into(), value: to_value(context).ok() }
     }
+    
+    #[inline]
+    pub fn render_with_json<S>(name: S, context: Value) -> Template
+        where S: Into<Cow<'static, str>>
+    {
+        Template { name: name.into(), value: Some(context) }
+    }
 
     /// Render the template named `name` with the context `context` into a
     /// `String`. This method should **not** be used in any running Rocket
