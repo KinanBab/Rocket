@@ -387,8 +387,10 @@ impl Rocket<Orbit> {
         self.http_server(l).await
     }
 
-    // TODO.async: Solidify the Listener APIs and make this function public
-    pub(crate) async fn http_server<L>(self, listener: L) -> Result<(), Error>
+    // Public so a caller supplying its own Listener can reach the accept
+    // loop; `default_tcp_http_server` remains the built-in path. This is
+    // the "make this function public" half of the TODO above.
+    pub async fn http_server<L>(self, listener: L) -> Result<(), Error>
         where L: Listener + Send, <L as Listener>::Connection: Send + Unpin + 'static
     {
         // Determine keep-alives.
