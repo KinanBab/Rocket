@@ -627,6 +627,19 @@ impl Rocket<Ignite> {
                 Paint::default(addr).bold().underline());
         })).await
     }
+
+    async fn _launch_with_listener<L>(self, listener: L) -> Result<(), Error>
+    where
+        L: crate::http::private::Listener + Send,
+        <L as crate::http::private::Listener>::Connection: Send + Unpin + 'static,
+    {
+        let rkt = self.into_orbit();
+        rkt.fairings.handle_liftoff(&rkt).await;
+        launch_info!("{}{}",
+            Paint::emoji("🚀 "),
+            Paint::default("Rocket has launched (custom listener)").bold());
+        rkt.http_server(listener).await
+    }
 }
 
 impl Rocket<Orbit> {
@@ -842,6 +855,27 @@ impl<P: Phase> Rocket<P> {
             State::Build(s) => Rocket::from(s).ignite().await?._launch().await,
             State::Ignite(s) => Rocket::from(s)._launch().await,
             State::Orbit(_) => Ok(())
+        }
+    }
+
+    /// Launch this rocket on a caller-supplied `Listener` instead of the
+    /// built-in TCP and rustls pair.
+    ///
+    /// `launch` can only use the transports Rocket ships with, so a
+    /// caller with its own TLS stack has no way in. This takes any
+    /// `Listener` and drives the normal ignite-then-serve sequence over
+    /// it, including liftoff fairings.
+    pub async fn launch_with_listener<L>(self, listener: L) -> Result<(), Error>
+    where
+        L: crate::http::private::Listener + Send,
+        <L as crate::http::private::Listener>::Connection: Send + Unpin + 'static,
+    {
+        match self.0.into_state() {
+            State::Build(s) => {
+                Rocket::from(s).ignite().await?._launch_with_listener(listener).await
+            }
+            State::Ignite(s) => Rocket::from(s)._launch_with_listener(listener).await,
+            State::Orbit(_) => Ok(()),
         }
     }
 }
